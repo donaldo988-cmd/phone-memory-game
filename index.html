@@ -32,14 +32,17 @@
 
     <div id="modeScreen" class="panel hidden">
       <h2 id="modeTitle">Choose mode</h2>
+
       <div class="mode-buttons">
         <button id="hardMode" class="mode hard">
           <span>Hard Mode</span>
           <small>Big prizes</small>
+          <div id="hardModeList" class="mode-list"></div>
         </button>
+
         <button id="easyMode" class="mode easy">
           <span>Easy Mode</span>
-          <small>Not-so-big prizes</small>
+          <small id="easyModeSubtitle">Boring but no risk</small>
         </button>
       </div>
     </div>
@@ -66,9 +69,18 @@
           <h3>Safe Path</h3>
           <p>If you get it wrong, nothing else happens. You only lose one life and it becomes the other player's turn.</p>
         </div>
-        <div class="instruction-box">
+
+        <div class="instruction-box double-box">
           <h3>Prizes Are Double</h3>
-          <p>If you get it right, you spin the wheel for a prize. If you get it wrong, your partner chooses a punishment right away and you lose one life.</p>
+
+          <div class="carousel-wrap">
+            <img id="carouselImage" class="carousel-image" src="" alt="Prize preview" />
+            <div id="carouselCaption" class="carousel-caption"></div>
+          </div>
+
+          <p id="doublePathText">
+            If you get it right, you spin the wheel for a prize. If you get it wrong, your partner chooses a punishment right away 😈 and you lose one life.
+          </p>
         </div>
       </div>
 
@@ -78,12 +90,39 @@
 
     <div id="wheelScreen" class="panel hidden">
       <h2>Prize Wheel</h2>
+
       <div class="wheel-wrapper">
         <div class="pointer"></div>
+
         <div id="wheel" class="wheel">
+          <div class="wheel-segment seg1"></div>
+          <div class="wheel-segment seg2"></div>
+          <div class="wheel-segment seg3"></div>
+          <div class="wheel-segment seg4"></div>
+
+          <div class="wheel-items">
+            <div class="wheel-item item1">
+              <img id="wheelImg1" src="" alt="" />
+              <span id="wheelLabel1"></span>
+            </div>
+            <div class="wheel-item item2">
+              <img id="wheelImg2" src="" alt="" />
+              <span id="wheelLabel2"></span>
+            </div>
+            <div class="wheel-item item3">
+              <img id="wheelImg3" src="" alt="" />
+              <span id="wheelLabel3"></span>
+            </div>
+            <div class="wheel-item item4">
+              <img id="wheelImg4" src="" alt="" />
+              <span id="wheelLabel4"></span>
+            </div>
+          </div>
+
           <div class="wheel-center"></div>
         </div>
       </div>
+
       <div id="wheelResult" class="wheel-result"></div>
       <button id="newRound" class="submit-btn">New Round</button>
     </div>
