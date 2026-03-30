@@ -14,7 +14,7 @@ const rewardPools = {
       image: "assets/dinner.png"
     },
     {
-      label: "Romantic Weekend Getaway",
+      label: "Spa Day @ Spavia",
       image: "assets/getaway.png"
     },
     {
@@ -58,6 +58,7 @@ const modeScreen = document.getElementById("modeScreen");
 const countdownScreen = document.getElementById("countdownScreen");
 const guessScreen = document.getElementById("guessScreen");
 const wheelScreen = document.getElementById("wheelScreen");
+const punishmentScreen = document.getElementById("punishmentScreen");
 
 const flashNumber = document.getElementById("flashNumber");
 const boom = document.getElementById("boom");
@@ -92,6 +93,7 @@ function hideAllScreens() {
   countdownScreen.classList.add("hidden");
   guessScreen.classList.add("hidden");
   wheelScreen.classList.add("hidden");
+  punishmentScreen.classList.add("hidden");
 }
 
 function updateLives() {
@@ -323,14 +325,29 @@ function showWheel() {
   const prizeList = rewardPools[currentPlayer];
   const spins = 5 + Math.floor(Math.random() * 4);
   const extraDeg = Math.floor(Math.random() * 360);
-  wheelRotation += spins * 360 + extraDeg;
+  const newRotation = wheelRotation + spins * 360 + extraDeg;
 
+  wheel.style.transition = "none";
   wheel.style.transform = "rotate(" + wheelRotation + "deg)";
+  wheel.offsetHeight;
+
+  requestAnimationFrame(function () {
+    wheel.style.transition = "transform 4.2s cubic-bezier(0.15, 0.8, 0.2, 1)";
+    wheel.style.transform = "rotate(" + newRotation + "deg)";
+  });
+
+  wheelRotation = newRotation;
 
   setTimeout(function () {
     const selectedPrize = getWinningPrize(prizeList, wheelRotation);
     wheelResult.textContent = "Prize won: " + selectedPrize.label;
   }, 4200);
+}
+
+function showPunishmentScreen() {
+  stopCarousel();
+  hideAllScreens();
+  punishmentScreen.classList.remove("hidden");
 }
 
 function submitGuess() {
@@ -367,21 +384,20 @@ function submitGuess() {
   lives[currentPlayer] = Math.max(0, lives[currentPlayer] - 1);
   updateLives();
 
-  if (currentPath === "safe") {
-    resultMessage.textContent =
-      "Wrong. You lose one life. Now it is the other player's turn.";
-  } else {
-    resultMessage.textContent =
-      "Wrong. You lose one life and your partner chooses a punishment right now 😈";
-  }
-
   if (checkGameOver()) {
     return;
   }
 
-  setTimeout(function () {
-    switchTurn();
-  }, 1800);
+  if (currentPath === "safe") {
+    resultMessage.textContent =
+      "Wrong. You lose one life. Now it is the other player's turn.";
+
+    setTimeout(function () {
+      switchTurn();
+    }, 1800);
+  } else {
+    showPunishmentScreen();
+  }
 }
 
 function resetAll() {
@@ -434,6 +450,10 @@ document.getElementById("submitGuess").onclick = function () {
 
 document.getElementById("newRound").onclick = function () {
   resetGame();
+};
+
+document.getElementById("continueAfterPunishment").onclick = function () {
+  switchTurn();
 };
 
 updateLives();
