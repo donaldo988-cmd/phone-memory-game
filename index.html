@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phone Memory Duel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>Phone Memory Duel</h1>
+    <p class="subtitle">Memorize the number. Risk a life. Win a prize.</p>
+
+    <div class="lives">
+      <div class="life-box red">
+        <span>Donaldo Lives</span>
+        <strong id="donaldoLives">3</strong>
+      </div>
+      <div class="life-box green">
+        <span>Tess Lives</span>
+        <strong id="tessLives">3</strong>
+      </div>
+    </div>
+
+    <div id="mainScreen" class="panel">
+      <h2>Choose a turn</h2>
+      <div class="turn-buttons">
+        <button id="donaldoBtn" class="turn red-btn">Donaldo's Turn</button>
+        <button id="tessBtn" class="turn green-btn">Tess Turn</button>
+      </div>
+    </div>
+
+    <div id="modeScreen" class="panel hidden">
+      <h2 id="modeTitle">Choose mode</h2>
+      <div class="mode-buttons">
+        <button id="hardMode" class="mode hard">
+          <span>Hard Mode</span>
+          <small>Big prizes</small>
+        </button>
+        <button id="easyMode" class="mode easy">
+          <span>Easy Mode</span>
+          <small>Not-so-big prizes</small>
+        </button>
+      </div>
+    </div>
+
+    <div id="countdownScreen" class="panel hidden">
+      <h2>Get Ready</h2>
+      <div id="countdown" class="countdown">3</div>
+    </div>
+
+    <div id="flashNumber" class="flash-number hidden"></div>
+    <div id="boom" class="boom hidden">💥 BOOM 💥</div>
+
+    <div id="guessScreen" class="panel hidden">
+      <h2 id="guessTitle">Enter the number</h2>
+      <input id="guessInput" type="text" maxlength="10" placeholder="Type 10-digit number" />
+
+      <div class="path-options">
+        <button id="safePath" class="path safe">Safe Path</button>
+        <button id="doublePath" class="path double">Prizes Are Double</button>
+      </div>
+
+      <div class="instructions">
+        <div class="instruction-box">
+          <h3>Safe Path</h3>
+          <p>If you get it wrong, nothing else happens. You only lose one life and it becomes the other player's turn.</p>
+        </div>
+        <div class="instruction-box">
+          <h3>Prizes Are Double</h3>
+          <p>If you get it right, you spin the wheel for a prize. If you get it wrong, your partner chooses a punishment right away and you lose one life.</p>
+        </div>
+      </div>
+
+      <button id="submitGuess" class="submit-btn">Submit Guess</button>
+      <div id="resultMessage" class="result-message"></div>
+    </div>
+
+    <div id="wheelScreen" class="panel hidden">
+      <h2>Prize Wheel</h2>
+      <div class="wheel-wrapper">
+        <div class="pointer"></div>
+        <div id="wheel" class="wheel">
+          <div class="wheel-center"></div>
+        </div>
+      </div>
+      <div id="wheelResult" class="wheel-result"></div>
+      <button id="newRound" class="submit-btn">New Round</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
