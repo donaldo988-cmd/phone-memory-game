@@ -3,22 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phone Memory Duel</title>
+  <title>Date Night ft. Phone Memory Duel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
-    <h1>Phone Memory Duel</h1>
-    <p class="subtitle">Memorize the number. Beat the stages. Win the wheel.</p>
+    <h1>Date Night ft. Phone Memory Duel</h1>
+    <p class="subtitle">Memorize the number. Beat the rounds. Stack the points. Win the wheel.</p>
 
-    <div class="lives">
-      <div class="life-box red">
-        <span>Donaldo Stage</span>
-        <strong id="donaldoStage">1</strong>
+    <div class="game-brief panel brief-panel">
+      <h2>How the game works</h2>
+      <p>
+        There are 5 stages for each player. In every stage, you must guess 2 random digits from your partner's phone number.
+        Correct digits stay saved in your progress. If you clear the full stage, you earn points based on the difficulty you chose:
+        Hard Mode gives 2 points, Easy Mode gives 1 point. First player to reach 10 points wins the race to the prize wheel.
+      </p>
+      <p>
+        You can also choose to bet your luck for one extra point 👀. That adds 1 extra random digit. If you get it right, you earn the bonus point.
+        If you get it wrong, you lose all points for that round and must face your partner's punishment 😈
+      </p>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-box red">
+        <div class="score-line">
+          <span>Donaldo Stage</span>
+          <strong id="donaldoStage">1</strong>
+        </div>
+        <div class="score-line">
+          <span>Donaldo Points</span>
+          <strong id="donaldoPoints">0</strong>
+        </div>
       </div>
-      <div class="life-box green">
-        <span>Tess Stage</span>
-        <strong id="tessStage">1</strong>
+
+      <div class="score-box green">
+        <div class="score-line">
+          <span>Tess Stage</span>
+          <strong id="tessStage">1</strong>
+        </div>
+        <div class="score-line">
+          <span>Tess Points</span>
+          <strong id="tessPoints">0</strong>
+        </div>
       </div>
     </div>
 
@@ -36,13 +62,13 @@
       <div class="mode-buttons">
         <button id="hardMode" class="mode hard">
           <span>Hard Mode</span>
-          <small>Big prizes</small>
+          <small>2 points winner winner fast chicken dinner</small>
           <div id="hardModeList" class="mode-list"></div>
         </button>
 
         <button id="easyMode" class="mode easy">
           <span>Easy Mode</span>
-          <small>Boring but no risk</small>
+          <small>Slow but easy (and boring)</small>
         </button>
       </div>
     </div>
@@ -64,18 +90,21 @@
       <div id="digitInputs" class="digit-inputs"></div>
 
       <div class="path-options">
-        <button id="safePath" class="path safe">Safe Path</button>
-        <button id="doublePath" class="path double">Bet Your Luck and Memory 👀</button>
+        <button id="safePath" class="path safe">Just Guess Thank You</button>
+        <button id="doublePath" class="path double">Bet your luck for one extra point 👀</button>
       </div>
 
       <div class="instructions">
         <div class="instruction-box">
-          <h3>Safe Path</h3>
-          <p>Play the stages with no extra risk. You still need to complete stage 1, stage 2, and stage 3 before reaching the prize wheel.</p>
+          <h3>Just Guess Thank You</h3>
+          <p>
+            Submit the 2 required digits for the round. If both are correct, you get the points from the difficulty you chose.
+            Then your turn ends and the other player goes.
+          </p>
         </div>
 
         <div class="instruction-box double-box">
-          <h3>Bet Your Luck and Memory 👀</h3>
+          <h3>Bet your luck for one extra point 👀</h3>
 
           <div class="carousel-wrap">
             <img id="carouselImage" class="carousel-image" src="" alt="Prize preview" />
@@ -83,12 +112,14 @@
           </div>
 
           <p>
-            If you clear all 3 stages first, you unlock the big prize wheel. If you fail badly, your partner can punish you 😈
+            First clear the 2 required digits. Then you get 1 extra random digit.
+            If that extra one is correct, you gain one bonus point.
+            If it is wrong, you lose all points from that round and your partner chooses a punishment 😈
           </p>
         </div>
       </div>
 
-      <button id="submitGuess" class="submit-btn">Submit Stage</button>
+      <button id="submitGuess" class="submit-btn">Submit Round</button>
       <div id="resultMessage" class="result-message"></div>
     </div>
 
