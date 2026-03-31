@@ -3,11 +3,8 @@ const numbers = {
   tess: "6892600745"
 };
 
-const stageDefinitions = {
-  1: 2,
-  2: 4,
-  3: 10
-};
+const TOTAL_STAGES = 5;
+const POINTS_TO_WIN = 10;
 
 const rewardPools = {
   tess: [
@@ -33,26 +30,30 @@ let carouselInterval = null;
 let secondChanceDelayTimeout = null;
 let offerCountdownInterval = null;
 let offerExpireTimeout = null;
-let bonusOfferDelayTimeout = null;
 let bonusOfferCountdownInterval = null;
 let bonusOfferExpireTimeout = null;
 
 const progress = {
   donaldo: {
     stage: 1,
+    points: 0,
     known: Array(10).fill(""),
-    askedThisStage: [],
+    askedOverall: [],
     wheelUnlocked: false
   },
   tess: {
     stage: 1,
+    points: 0,
     known: Array(10).fill(""),
-    askedThisStage: [],
+    askedOverall: [],
     wheelUnlocked: false
   }
 };
 
 let currentRequestedIndices = [];
+let currentBonusIndex = null;
+let roundBasePoints = 0;
+let roundPassed = false;
 
 const mainScreen = document.getElementById("mainScreen");
 const modeScreen = document.getElementById("modeScreen");
@@ -73,6 +74,8 @@ const hardModeList = document.getElementById("hardModeList");
 
 const donaldoStage = document.getElementById("donaldoStage");
 const tessStage = document.getElementById("tessStage");
+const donaldoPoints = document.getElementById("donaldoPoints");
+const tessPoints = document.getElementById("tessPoints");
 
 const carouselImage = document.getElementById("carouselImage");
 const carouselCaption = document.getElementById("carouselCaption");
@@ -107,6 +110,10 @@ function getTargetNumber(player) {
   return numbers[player];
 }
 
+function getModePoints() {
+  return currentMode === "hard" ? 2 : 1;
+}
+
 function hideAllScreens() {
   mainScreen.classList.add("hidden");
   modeScreen.classList.add("hidden");
@@ -116,9 +123,11 @@ function hideAllScreens() {
   punishmentScreen.classList.add("hidden");
 }
 
-function updateStageDisplay() {
-  donaldoStage.textContent = progress.donaldo.stage > 3 ? "WIN" : progress.donaldo.stage;
-  tessStage.textContent = progress.tess.stage > 3 ? "WIN" : progress.tess.stage;
+function updateScoreboard() {
+  donaldoStage.textContent = progress.donaldo.stage > TOTAL_STAGES ? "DONE" : progress.donaldo.stage;
+  tessStage.textContent = progress.tess.stage > TOTAL_STAGES ? "DONE" : progress.tess.stage;
+  donaldoPoints.textContent = progress.donaldo.points;
+  tessPoints.textContent = progress.tess.points;
 }
 
 function updatePathButtons() {
@@ -188,6 +197,7 @@ function showMovingNumber() {
   const targetNumber = getTargetNumber(currentPlayer);
   flashNumber.textContent = targetNumber;
   flashNumber.classList.remove("hidden");
+
   randomPosition();
   stopNumberMotion();
 
@@ -212,19 +222,13 @@ function showExplosion() {
   }, 900);
 }
 
-function pickRandomIndicesForStage(player) {
+function getRoundIndices(player) {
   const playerProgress = progress[player];
   const targetNumber = getTargetNumber(player);
-  const stage = playerProgress.stage;
-  const need = stageDefinitions[stage];
-
-  if (stage === 3) {
-    return [0,1,2,3,4,5,6,7,8,9];
-  }
-
   const available = [];
+
   for (let i = 0; i < targetNumber.length; i++) {
-    if (!playerProgress.known[i] && !playerProgress.askedThisStage.includes(i)) {
+    if (!playerProgress.askedOverall.includes(i)) {
       available.push(i);
     }
   }
@@ -232,21 +236,41 @@ function pickRandomIndicesForStage(player) {
   const selected = [];
   const copy = [...available];
 
-  while (copy.length > 0 && selected.length < need) {
+  while (copy.length > 0 && selected.length < 2) {
     const idx = Math.floor(Math.random() * copy.length);
     selected.push(copy.splice(idx, 1)[0]);
   }
 
-  while (selected.length < need) {
-    for (let i = 0; i < targetNumber.length && selected.length < need; i++) {
-      if (!selected.includes(i) && !playerProgress.known[i]) selected.push(i);
+  while (selected.length < 2) {
+    for (let i = 0; i < targetNumber.length && selected.length < 2; i++) {
+      if (!selected.includes(i)) selected.push(i);
     }
   }
 
   return selected.sort((a, b) => a - b);
 }
 
-function renderMaskedNumber(player, askedIndices) {
+function getBonusIndex(player) {
+  const playerProgress = progress[player];
+  const targetNumber = getTargetNumber(player);
+  const available = [];
+
+  for (let i = 0; i < targetNumber.length; i++) {
+    if (!currentRequestedIndices.includes(i) && !playerProgress.askedOverall.includes(i)) {
+      available.push(i);
+    }
+  }
+
+  if (available.length === 0) {
+    for (let i = 0; i < targetNumber.length; i++) {
+      if (!currentRequestedIndices.includes(i)) available.push(i);
+    }
+  }
+
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+function renderMaskedNumber(player, askedIndices, bonusIndex = null) {
   const playerProgress = progress[player];
   maskedNumber.innerHTML = "";
 
@@ -257,7 +281,7 @@ function renderMaskedNumber(player, askedIndices) {
     if (playerProgress.known[i]) {
       slot.classList.add("known");
       slot.textContent = playerProgress.known[i];
-    } else if (askedIndices.includes(i)) {
+    } else if (askedIndices.includes(i) || bonusIndex === i) {
       slot.classList.add("ask");
       slot.textContent = "?";
     } else {
@@ -268,13 +292,11 @@ function renderMaskedNumber(player, askedIndices) {
   }
 }
 
-function renderDigitInputs(player, askedIndices) {
+function renderDigitInputs(player, askedIndices, bonusIndex = null) {
   const playerProgress = progress[player];
   digitInputs.innerHTML = "";
 
   askedIndices.forEach(function (index) {
-    if (playerProgress.known[index]) return;
-
     const wrap = document.createElement("div");
     wrap.className = "digit-input-box";
 
@@ -287,6 +309,11 @@ function renderDigitInputs(player, askedIndices) {
     input.dataset.index = index;
     input.inputMode = "numeric";
 
+    if (playerProgress.known[index]) {
+      input.value = playerProgress.known[index];
+      input.disabled = true;
+    }
+
     input.addEventListener("input", function () {
       this.value = this.value.replace(/\D/g, "").slice(0, 1);
     });
@@ -295,23 +322,47 @@ function renderDigitInputs(player, askedIndices) {
     wrap.appendChild(input);
     digitInputs.appendChild(wrap);
   });
+
+  if (bonusIndex !== null) {
+    const wrap = document.createElement("div");
+    wrap.className = "digit-input-box";
+
+    const label = document.createElement("label");
+    label.textContent = "Bonus Digit " + (bonusIndex + 1);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 1;
+    input.dataset.index = bonusIndex;
+    input.dataset.bonus = "true";
+    input.inputMode = "numeric";
+
+    input.addEventListener("input", function () {
+      this.value = this.value.replace(/\D/g, "").slice(0, 1);
+    });
+
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    digitInputs.appendChild(wrap);
+  }
 }
 
 function showGuessScreen() {
   hideAllScreens();
   guessScreen.classList.remove("hidden");
 
-  const playerProgress = progress[currentPlayer];
-  currentRequestedIndices = pickRandomIndicesForStage(currentPlayer);
+  currentRequestedIndices = getRoundIndices(currentPlayer);
+  currentBonusIndex = null;
+  roundBasePoints = 0;
+  roundPassed = false;
 
-  if (currentPlayer === "donaldo") {
-    guessTitle.textContent = "Type Tess's requested digits";
-  } else {
-    guessTitle.textContent = "Type Donaldo's requested digits";
-  }
+  guessTitle.textContent = currentPlayer === "donaldo"
+    ? "Type Tess's requested digits"
+    : "Type Donaldo's requested digits";
 
   stageInstructions.textContent =
-    "Stage " + playerProgress.stage + ": fill " + stageDefinitions[playerProgress.stage] + " requested digits.";
+    "Stage " + progress[currentPlayer].stage + " of " + TOTAL_STAGES +
+    ": get both required digits correct to earn points.";
 
   renderMaskedNumber(currentPlayer, currentRequestedIndices);
   renderDigitInputs(currentPlayer, currentRequestedIndices);
@@ -392,10 +443,8 @@ function startSecondChanceSequence() {
 }
 
 function clearBonusTimers() {
-  if (bonusOfferDelayTimeout) clearTimeout(bonusOfferDelayTimeout);
   if (bonusOfferCountdownInterval) clearInterval(bonusOfferCountdownInterval);
   if (bonusOfferExpireTimeout) clearTimeout(bonusOfferExpireTimeout);
-  bonusOfferDelayTimeout = null;
   bonusOfferCountdownInterval = null;
   bonusOfferExpireTimeout = null;
 }
@@ -409,38 +458,45 @@ function resetBonusOffer() {
 
 function startBonusOfferIfNeeded() {
   resetBonusOffer();
-
   if (currentPlayer !== "tess") return;
 
-  bonusOfferDelayTimeout = setTimeout(function () {
-    bonusOfferBox.classList.remove("hidden");
+  bonusOfferBox.classList.remove("hidden");
 
-    let secondsLeft = 7;
+  let secondsLeft = 7;
+  bonusCountdown.textContent = secondsLeft;
+
+  bonusOfferCountdownInterval = setInterval(function () {
+    secondsLeft--;
     bonusCountdown.textContent = secondsLeft;
+    if (secondsLeft <= 0) {
+      clearInterval(bonusOfferCountdownInterval);
+      bonusOfferCountdownInterval = null;
+    }
+  }, 1000);
 
-    bonusOfferCountdownInterval = setInterval(function () {
-      secondsLeft--;
-      bonusCountdown.textContent = secondsLeft;
-      if (secondsLeft <= 0) {
-        clearInterval(bonusOfferCountdownInterval);
-        bonusOfferCountdownInterval = null;
-      }
+  bonusOfferExpireTimeout = setTimeout(function () {
+    bonusOfferBox.classList.add("hidden");
+    bonusOfferBoom.classList.remove("hidden");
+
+    setTimeout(function () {
+      bonusOfferBoom.classList.add("hidden");
     }, 1000);
-
-    bonusOfferExpireTimeout = setTimeout(function () {
-      bonusOfferBox.classList.add("hidden");
-      bonusOfferBoom.classList.remove("hidden");
-
-      setTimeout(function () {
-        bonusOfferBoom.classList.add("hidden");
-      }, 1000);
-    }, 7000);
-  }, 0);
+  }, 7000);
 }
 
 function selectPath(path) {
   currentPath = path;
   updatePathButtons();
+
+  if (path === "double") {
+    currentBonusIndex = getBonusIndex(currentPlayer);
+    renderMaskedNumber(currentPlayer, currentRequestedIndices, currentBonusIndex);
+    renderDigitInputs(currentPlayer, currentRequestedIndices, currentBonusIndex);
+  } else {
+    currentBonusIndex = null;
+    renderMaskedNumber(currentPlayer, currentRequestedIndices);
+    renderDigitInputs(currentPlayer, currentRequestedIndices);
+  }
 }
 
 function switchTurn() {
@@ -514,38 +570,60 @@ function showPunishmentScreen() {
   startSecondChanceSequence();
 }
 
-function advanceStageIfReady(player) {
+function saveCorrectDigits(player, indices, values) {
   const playerProgress = progress[player];
-  const stage = playerProgress.stage;
-  const targetNeed = stageDefinitions[stage];
-  let knownCount = 0;
+  const target = getTargetNumber(player);
 
-  for (let i = 0; i < playerProgress.known.length; i++) {
-    if (playerProgress.known[i]) knownCount++;
-  }
+  let correctCount = 0;
 
-  if (stage === 1 && knownCount >= 2) {
-    playerProgress.stage = 2;
-    playerProgress.askedThisStage = [];
-  } else if (stage === 2 && knownCount >= 6) {
-    playerProgress.stage = 3;
-    playerProgress.askedThisStage = [];
-  } else if (stage === 3 && knownCount >= 10) {
-    playerProgress.stage = 4;
+  indices.forEach(function (index) {
+    const val = values[index] || "";
+    if (val === target[index]) {
+      playerProgress.known[index] = val;
+      correctCount++;
+    }
+    if (!playerProgress.askedOverall.includes(index)) {
+      playerProgress.askedOverall.push(index);
+    }
+  });
+
+  return correctCount;
+}
+
+function finishSuccessfulRound(player, totalPointsEarned) {
+  const playerProgress = progress[player];
+  playerProgress.points += totalPointsEarned;
+  playerProgress.stage += 1;
+
+  if (playerProgress.points >= POINTS_TO_WIN) {
     playerProgress.wheelUnlocked = true;
   }
 
-  updateStageDisplay();
+  updateScoreboard();
+
+  if (playerProgress.wheelUnlocked) {
+    resultMessage.textContent = "You reached 10 points and unlocked the prize wheel.";
+    setTimeout(function () {
+      showWheel();
+    }, 900);
+    return;
+  }
+
+  resultMessage.textContent =
+    "Round cleared. You earned " + totalPointsEarned + " point" + (totalPointsEarned !== 1 ? "s." : ".") +
+    " Turn passes to the other player.";
+
+  setTimeout(function () {
+    switchTurn();
+  }, 1500);
 }
 
 function submitGuess() {
   if (!currentPath) {
-    resultMessage.textContent = "Choose Safe Path or Bet Your Luck and Memory first.";
+    resultMessage.textContent = "Choose Just Guess Thank You or Bet your luck for one extra point first.";
     return;
   }
 
-  const playerProgress = progress[currentPlayer];
-  const targetNumber = getTargetNumber(currentPlayer);
   const inputs = digitInputs.querySelectorAll("input");
   const entered = {};
 
@@ -553,57 +631,63 @@ function submitGuess() {
     entered[Number(input.dataset.index)] = input.value.trim();
   });
 
-  currentRequestedIndices.forEach(function (index) {
-    if (playerProgress.known[index]) return;
+  const baseCorrect = saveCorrectDigits(currentPlayer, currentRequestedIndices, entered);
+  const basePassed = baseCorrect === 2;
+  roundBasePoints = basePassed ? getModePoints() : 0;
+  roundPassed = basePassed;
 
-    const val = entered[index] || "";
-    if (val && val === targetNumber[index]) {
-      playerProgress.known[index] = val;
+  if (currentPath === "safe") {
+    if (basePassed) {
+      finishSuccessfulRound(currentPlayer, roundBasePoints);
+    } else {
+      updateScoreboard();
+      resultMessage.textContent = "Not enough correct digits. No points this round. Turn passes to the other player.";
+      setTimeout(function () {
+        switchTurn();
+      }, 1500);
     }
-    if (!playerProgress.askedThisStage.includes(index)) {
-      playerProgress.askedThisStage.push(index);
-    }
-  });
-
-  advanceStageIfReady(currentPlayer);
-
-  if (playerProgress.wheelUnlocked) {
-    resultMessage.textContent = "You completed all stages and unlocked the wheel.";
-    setTimeout(function () {
-      showWheel();
-    }, 700);
     return;
   }
 
-  if (currentPath === "double") {
-    let allWrong = true;
-    currentRequestedIndices.forEach(function (index) {
-      if (playerProgress.known[index]) allWrong = false;
-    });
-
-    if (allWrong) {
-      showPunishmentScreen();
-      return;
-    }
+  if (!basePassed) {
+    updateScoreboard();
+    resultMessage.textContent = "You did not clear the 2 required digits. No points this round. Turn passes to the other player.";
+    setTimeout(function () {
+      switchTurn();
+    }, 1500);
+    return;
   }
 
-  resultMessage.textContent =
-    "Stage submitted. Known digits were saved. Turn passes to the other player.";
+  const bonusValue = entered[currentBonusIndex] || "";
+  const target = getTargetNumber(currentPlayer);
 
-  setTimeout(function () {
-    switchTurn();
-  }, 1400);
+  if (bonusValue === target[currentBonusIndex]) {
+    progress[currentPlayer].known[currentBonusIndex] = bonusValue;
+    if (!progress[currentPlayer].askedOverall.includes(currentBonusIndex)) {
+      progress[currentPlayer].askedOverall.push(currentBonusIndex);
+    }
+
+    finishSuccessfulRound(currentPlayer, roundBasePoints + 1);
+  } else {
+    updateScoreboard();
+    resultMessage.textContent = "Bonus digit failed. You lose all points from this round.";
+    setTimeout(function () {
+      showPunishmentScreen();
+    }, 800);
+  }
 }
 
 function resetAll() {
   progress.donaldo.stage = 1;
+  progress.donaldo.points = 0;
   progress.donaldo.known = Array(10).fill("");
-  progress.donaldo.askedThisStage = [];
+  progress.donaldo.askedOverall = [];
   progress.donaldo.wheelUnlocked = false;
 
   progress.tess.stage = 1;
+  progress.tess.points = 0;
   progress.tess.known = Array(10).fill("");
-  progress.tess.askedThisStage = [];
+  progress.tess.askedOverall = [];
   progress.tess.wheelUnlocked = false;
 
   currentPlayer = null;
@@ -611,13 +695,16 @@ function resetAll() {
   currentPath = null;
   wheelRotation = 0;
   currentRequestedIndices = [];
+  currentBonusIndex = null;
+  roundBasePoints = 0;
+  roundPassed = false;
   resultMessage.textContent = "";
   wheelResult.textContent = "";
   stopCarousel();
   stopNumberMotion();
   resetPunishmentVisuals();
   resetBonusOffer();
-  updateStageDisplay();
+  updateScoreboard();
   hideAllScreens();
   mainScreen.classList.remove("hidden");
 }
@@ -669,4 +756,4 @@ document.getElementById("acceptBonusSpin").onclick = function () {
   showWheel();
 };
 
-updateStageDisplay();
+updateScoreboard();
