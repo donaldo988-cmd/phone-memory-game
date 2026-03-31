@@ -53,7 +53,6 @@ const progress = {
 let currentRequestedIndices = [];
 let currentBonusIndex = null;
 let roundBasePoints = 0;
-let roundPassed = false;
 
 const mainScreen = document.getElementById("mainScreen");
 const modeScreen = document.getElementById("modeScreen");
@@ -355,7 +354,6 @@ function showGuessScreen() {
   currentRequestedIndices = getRoundIndices(currentPlayer);
   currentBonusIndex = null;
   roundBasePoints = 0;
-  roundPassed = false;
 
   if (currentPlayer === "donaldo") {
     guessTitle.textContent = "Type Tess's requested digits";
@@ -613,7 +611,7 @@ function finishSuccessfulRound(player, totalPointsEarned) {
     setTimeout(function () {
       showWheel();
     }, 900);
-      return;
+    return;
   }
 
   resultMessage.textContent =
@@ -642,7 +640,6 @@ function submitGuess() {
   const baseCorrect = saveCorrectDigits(currentPlayer, currentRequestedIndices, entered);
   const basePassed = baseCorrect === requiredCount;
   roundBasePoints = basePassed ? getModePoints() : 0;
-  roundPassed = basePassed;
 
   if (currentPath === "safe") {
     if (basePassed) {
@@ -710,7 +707,6 @@ function resetAll() {
   currentRequestedIndices = [];
   currentBonusIndex = null;
   roundBasePoints = 0;
-  roundPassed = false;
   resultMessage.textContent = "";
   wheelResult.textContent = "";
   stopCarousel();
