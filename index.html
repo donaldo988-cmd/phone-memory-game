@@ -9,16 +9,16 @@
 <body>
   <div class="app">
     <h1>Phone Memory Duel</h1>
-    <p class="subtitle">Memorize the number. Risk a life. Win a prize.</p>
+    <p class="subtitle">Memorize the number. Beat the stages. Win the wheel.</p>
 
     <div class="lives">
       <div class="life-box red">
-        <span>Donaldo Lives</span>
-        <strong id="donaldoLives">3</strong>
+        <span>Donaldo Stage</span>
+        <strong id="donaldoStage">1</strong>
       </div>
       <div class="life-box green">
-        <span>Tess Lives</span>
-        <strong id="tessLives">3</strong>
+        <span>Tess Stage</span>
+        <strong id="tessStage">1</strong>
       </div>
     </div>
 
@@ -42,7 +42,7 @@
 
         <button id="easyMode" class="mode easy">
           <span>Easy Mode</span>
-          <small id="easyModeSubtitle">Boring but no risk</small>
+          <small>Boring but no risk</small>
         </button>
       </div>
     </div>
@@ -56,41 +56,58 @@
     <div id="boom" class="boom hidden">💥 BOOM 💥</div>
 
     <div id="guessScreen" class="panel hidden">
-      <h2 id="guessTitle">Enter the number</h2>
-      <input id="guessInput" type="text" maxlength="10" placeholder="Type 10-digit number" />
+      <h2 id="guessTitle">Fill the requested digits</h2>
+      <p id="stageInstructions" class="stage-instructions"></p>
+
+      <div id="maskedNumber" class="masked-number"></div>
+
+      <div id="digitInputs" class="digit-inputs"></div>
 
       <div class="path-options">
         <button id="safePath" class="path safe">Safe Path</button>
-        <button id="doublePath" class="path double">Prizes Are Double</button>
+        <button id="doublePath" class="path double">Bet Your Luck and Memory 👀</button>
       </div>
 
       <div class="instructions">
         <div class="instruction-box">
           <h3>Safe Path</h3>
-          <p>If you get it wrong, nothing else happens. You only lose one life and it becomes the other player's turn.</p>
+          <p>Play the stages with no extra risk. You still need to complete stage 1, stage 2, and stage 3 before reaching the prize wheel.</p>
         </div>
 
         <div class="instruction-box double-box">
-          <h3>Prizes Are Double</h3>
+          <h3>Bet Your Luck and Memory 👀</h3>
 
           <div class="carousel-wrap">
             <img id="carouselImage" class="carousel-image" src="" alt="Prize preview" />
             <div id="carouselCaption" class="carousel-caption"></div>
           </div>
 
-          <p id="doublePathText">
-            If you get it right, you spin the wheel for a prize. If you get it wrong, your partner chooses a punishment right away 😈 and you lose one life.
+          <p>
+            If you clear all 3 stages first, you unlock the big prize wheel. If you fail badly, your partner can punish you 😈
           </p>
         </div>
       </div>
 
-      <button id="submitGuess" class="submit-btn">Submit Guess</button>
+      <button id="submitGuess" class="submit-btn">Submit Stage</button>
       <div id="resultMessage" class="result-message"></div>
     </div>
 
     <div id="punishmentScreen" class="panel hidden punishment-panel">
       <h2>Sorry, it is time to receive your punishment.</h2>
       <p>Turn to your partner and wait for instructions.</p>
+
+      <div id="secondChanceBox" class="hidden second-chance-box">
+        <p class="second-chance-text">
+          Or you can try to convince your boyfriend to give you another chance 😈
+        </p>
+
+        <p class="offer-timer-text">
+          This offer expires in <span id="offerCountdown">5</span> seconds
+        </p>
+      </div>
+
+      <div id="offerBoom" class="hidden offer-boom">💥 OFFER EXPIRED 💥</div>
+
       <button id="continueAfterPunishment" class="submit-btn">Continue</button>
     </div>
 
@@ -130,6 +147,16 @@
       </div>
 
       <div id="wheelResult" class="wheel-result"></div>
+
+      <div id="bonusOfferBox" class="hidden bonus-offer-box">
+        <h3>One flash for one shot</h3>
+        <p>You can try to convince the other player to give you one extra spin 👀</p>
+        <p>This offer self-destructs in <span id="bonusCountdown">7</span> seconds</p>
+        <button id="acceptBonusSpin" class="submit-btn bonus-btn">Accept</button>
+      </div>
+
+      <div id="bonusOfferBoom" class="hidden offer-boom">💥 BONUS OFFER EXPIRED 💥</div>
+
       <button id="newRound" class="submit-btn">New Round</button>
     </div>
   </div>
