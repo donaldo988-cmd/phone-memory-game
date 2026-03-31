@@ -13,18 +13,18 @@ body {
 .app {
   max-width: 1150px;
   margin: 0 auto;
-  padding: 30px 20px 60px;
+  padding: 28px 20px 60px;
   text-align: center;
 }
 
 h1 {
-  font-size: 3.2rem;
+  font-size: 3.1rem;
   margin-bottom: 10px;
 }
 
 .subtitle {
   color: #cbd5e1;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
 
 .lives {
@@ -68,7 +68,7 @@ h1 {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .turn-buttons,
@@ -85,7 +85,7 @@ h1 {
   border: none;
   border-radius: 22px;
   padding: 18px 24px;
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   font-weight: bold;
   cursor: pointer;
   color: white;
@@ -173,15 +173,71 @@ h1 {
   100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
 }
 
-#guessInput {
-  width: 320px;
-  max-width: 90%;
-  padding: 16px;
-  font-size: 1.5rem;
-  border-radius: 18px;
+.stage-instructions {
+  font-size: 1.05rem;
+  color: #cbd5e1;
+  margin: 0 0 20px;
+}
+
+.masked-number {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0 24px;
+}
+
+.mask-slot {
+  width: 46px;
+  height: 58px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.mask-slot.ask {
+  border-color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+}
+
+.mask-slot.known {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.digit-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.digit-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.digit-input-box label {
+  font-size: 0.95rem;
+  color: #fde68a;
+}
+
+.digit-input-box input {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
   border: none;
-  margin-top: 20px;
   text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
 }
 
 .safe {
@@ -204,10 +260,6 @@ h1 {
   padding: 20px;
   border-radius: 20px;
   text-align: left;
-}
-
-.double-box {
-  position: relative;
 }
 
 .carousel-wrap {
@@ -238,8 +290,8 @@ h1 {
 }
 
 .result-message {
-  margin-top: 20px;
-  font-size: 1.1rem;
+  margin-top: 18px;
+  font-size: 1.05rem;
   font-weight: bold;
   color: #fde68a;
   min-height: 28px;
@@ -253,6 +305,74 @@ h1 {
 .punishment-panel p {
   font-size: 1.2rem;
   color: #fde68a;
+}
+
+.second-chance-box,
+.bonus-offer-box {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.18);
+  border: 1px solid rgba(196, 181, 253, 0.35);
+  animation: fadeInUp 0.5s ease;
+}
+
+.second-chance-text {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #e9d5ff;
+  margin: 0 0 10px;
+}
+
+.offer-timer-text {
+  font-size: 1rem;
+  color: #fde68a;
+  margin: 0;
+}
+
+#offerCountdown,
+#bonusCountdown {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #facc15;
+}
+
+.offer-boom {
+  margin-top: 24px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #f87171;
+  animation: boomOfferAnim 1s ease forwards;
+}
+
+.bonus-btn {
+  background: #9333ea;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes boomOfferAnim {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
 }
 
 .wheel-wrapper {
@@ -295,15 +415,12 @@ h1 {
 .seg1 {
   background: conic-gradient(from 0deg, #ef4444 0deg 90deg, transparent 90deg 360deg);
 }
-
 .seg2 {
   background: conic-gradient(from 90deg, #f59e0b 0deg 90deg, transparent 90deg 360deg);
 }
-
 .seg3 {
   background: conic-gradient(from 180deg, #10b981 0deg 90deg, transparent 90deg 360deg);
 }
-
 .seg4 {
   background: conic-gradient(from 270deg, #3b82f6 0deg 90deg, transparent 90deg 360deg);
 }
@@ -410,5 +527,10 @@ h1 {
   .wheel-item img {
     width: 68px;
     height: 50px;
+  }
+
+  .mask-slot {
+    width: 40px;
+    height: 52px;
   }
 }
