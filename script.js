@@ -222,28 +222,42 @@ function showExplosion() {
   }, 900);
 }
 
+function getUnknownIndices(player) {
+  const known = progress[player].known;
+  const unknown = [];
+  for (let i = 0; i < known.length; i++) {
+    if (!known[i]) unknown.push(i);
+  }
+  return unknown;
+}
+
 function getRoundIndices(player) {
   const playerProgress = progress[player];
-  const targetNumber = getTargetNumber(player);
-  const available = [];
+  const unknown = getUnknownIndices(player);
 
-  for (let i = 0; i < targetNumber.length; i++) {
-    if (!playerProgress.askedOverall.includes(i)) {
-      available.push(i);
+  if (unknown.length <= 2) {
+    return [...unknown].sort((a, b) => a - b);
+  }
+
+  const available = [];
+  for (let i = 0; i < unknown.length; i++) {
+    const idx = unknown[i];
+    if (!playerProgress.askedOverall.includes(idx)) {
+      available.push(idx);
     }
   }
 
+  const pool = available.length >= 2 ? [...available] : [...unknown];
   const selected = [];
-  const copy = [...available];
 
-  while (copy.length > 0 && selected.length < 2) {
-    const idx = Math.floor(Math.random() * copy.length);
-    selected.push(copy.splice(idx, 1)[0]);
+  while (pool.length > 0 && selected.length < 2) {
+    const idx = Math.floor(Math.random() * pool.length);
+    selected.push(pool.splice(idx, 1)[0]);
   }
 
-  while (selected.length < 2) {
-    for (let i = 0; i < targetNumber.length && selected.length < 2; i++) {
-      if (!selected.includes(i)) selected.push(i);
+  while (selected.length < Math.min(2, unknown.length)) {
+    for (let i = 0; i < unknown.length && selected.length < Math.min(2, unknown.length); i++) {
+      if (!selected.includes(unknown[i])) selected.push(unknown[i]);
     }
   }
 
@@ -251,21 +265,12 @@ function getRoundIndices(player) {
 }
 
 function getBonusIndex(player) {
-  const playerProgress = progress[player];
-  const targetNumber = getTargetNumber(player);
-  const available = [];
+  const unknown = getUnknownIndices(player);
+  const available = unknown.filter(function (idx) {
+    return !currentRequestedIndices.includes(idx);
+  });
 
-  for (let i = 0; i < targetNumber.length; i++) {
-    if (!currentRequestedIndices.includes(i) && !playerProgress.askedOverall.includes(i)) {
-      available.push(i);
-    }
-  }
-
-  if (available.length === 0) {
-    for (let i = 0; i < targetNumber.length; i++) {
-      if (!currentRequestedIndices.includes(i)) available.push(i);
-    }
-  }
+  if (available.length === 0) return null;
 
   return available[Math.floor(Math.random() * available.length)];
 }
@@ -293,10 +298,9 @@ function renderMaskedNumber(player, askedIndices, bonusIndex = null) {
 }
 
 function renderDigitInputs(player, askedIndices, bonusIndex = null) {
-  const playerProgress = progress[player];
   digitInputs.innerHTML = "";
 
-  askedIndices.forEach(function (index) {
+  askedIndices.forEach(function (index, order) {
     const wrap = document.createElement("div");
     wrap.className = "digit-input-box";
 
@@ -308,11 +312,7 @@ function renderDigitInputs(player, askedIndices, bonusIndex = null) {
     input.maxLength = 1;
     input.dataset.index = index;
     input.inputMode = "numeric";
-
-    if (playerProgress.known[index]) {
-      input.value = playerProgress.known[index];
-      input.disabled = true;
-    }
+    input.placeholder = String(order + 1);
 
     input.addEventListener("input", function () {
       this.value = this.value.replace(/\D/g, "").slice(0, 1);
@@ -336,6 +336,7 @@ function renderDigitInputs(player, askedIndices, bonusIndex = null) {
     input.dataset.index = bonusIndex;
     input.dataset.bonus = "true";
     input.inputMode = "numeric";
+    input.placeholder = "+1";
 
     input.addEventListener("input", function () {
       this.value = this.value.replace(/\D/g, "").slice(0, 1);
@@ -356,13 +357,19 @@ function showGuessScreen() {
   roundBasePoints = 0;
   roundPassed = false;
 
-  guessTitle.textContent = currentPlayer === "donaldo"
-    ? "Type Tess's requested digits"
-    : "Type Donaldo's requested digits";
+  if (currentPlayer === "donaldo") {
+    guessTitle.textContent = "Type Tess's requested digits";
+  } else {
+    guessTitle.textContent = "Type Donaldo's requested digits";
+  }
+
+  const unknownLeft = getUnknownIndices(currentPlayer).length;
+  const requiredCount = currentRequestedIndices.length;
 
   stageInstructions.textContent =
     "Stage " + progress[currentPlayer].stage + " of " + TOTAL_STAGES +
-    ": get both required digits correct to earn points.";
+    ": get all " + requiredCount + " required digit" + (requiredCount !== 1 ? "s" : "") +
+    " correct to earn points. Unknown digits left: " + unknownLeft + ".";
 
   renderMaskedNumber(currentPlayer, currentRequestedIndices);
   renderDigitInputs(currentPlayer, currentRequestedIndices);
@@ -410,7 +417,7 @@ function resetPunishmentVisuals() {
   clearPunishmentTimers();
   secondChanceBox.classList.add("hidden");
   offerBoom.classList.add("hidden");
-  offerCountdown.textContent = "5";
+  offerCountdown.textContent = "15";
 }
 
 function startSecondChanceSequence() {
@@ -419,7 +426,7 @@ function startSecondChanceSequence() {
   secondChanceDelayTimeout = setTimeout(function () {
     secondChanceBox.classList.remove("hidden");
 
-    let secondsLeft = 5;
+    let secondsLeft = 15;
     offerCountdown.textContent = secondsLeft;
 
     offerCountdownInterval = setInterval(function () {
@@ -438,7 +445,7 @@ function startSecondChanceSequence() {
       setTimeout(function () {
         offerBoom.classList.add("hidden");
       }, 1000);
-    }, 5000);
+    }, 15000);
   }, 3000);
 }
 
@@ -453,7 +460,7 @@ function resetBonusOffer() {
   clearBonusTimers();
   bonusOfferBox.classList.add("hidden");
   bonusOfferBoom.classList.add("hidden");
-  bonusCountdown.textContent = "7";
+  bonusCountdown.textContent = "15";
 }
 
 function startBonusOfferIfNeeded() {
@@ -462,7 +469,7 @@ function startBonusOfferIfNeeded() {
 
   bonusOfferBox.classList.remove("hidden");
 
-  let secondsLeft = 7;
+  let secondsLeft = 15;
   bonusCountdown.textContent = secondsLeft;
 
   bonusOfferCountdownInterval = setInterval(function () {
@@ -481,7 +488,7 @@ function startBonusOfferIfNeeded() {
     setTimeout(function () {
       bonusOfferBoom.classList.add("hidden");
     }, 1000);
-  }, 7000);
+  }, 15000);
 }
 
 function selectPath(path) {
@@ -606,7 +613,7 @@ function finishSuccessfulRound(player, totalPointsEarned) {
     setTimeout(function () {
       showWheel();
     }, 900);
-    return;
+      return;
   }
 
   resultMessage.textContent =
@@ -631,8 +638,9 @@ function submitGuess() {
     entered[Number(input.dataset.index)] = input.value.trim();
   });
 
+  const requiredCount = currentRequestedIndices.length;
   const baseCorrect = saveCorrectDigits(currentPlayer, currentRequestedIndices, entered);
-  const basePassed = baseCorrect === 2;
+  const basePassed = baseCorrect === requiredCount;
   roundBasePoints = basePassed ? getModePoints() : 0;
   roundPassed = basePassed;
 
@@ -651,10 +659,15 @@ function submitGuess() {
 
   if (!basePassed) {
     updateScoreboard();
-    resultMessage.textContent = "You did not clear the 2 required digits. No points this round. Turn passes to the other player.";
+    resultMessage.textContent = "You did not clear the required digits. No points this round. Turn passes to the other player.";
     setTimeout(function () {
       switchTurn();
     }, 1500);
+    return;
+  }
+
+  if (currentBonusIndex === null) {
+    finishSuccessfulRound(currentPlayer, roundBasePoints);
     return;
   }
 
