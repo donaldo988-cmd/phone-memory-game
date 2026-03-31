@@ -1,197 +1,556 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Date Night ft. Phone Memory Duel</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="app">
-    <h1>Date Night ft. Phone Memory Duel</h1>
-    <p class="subtitle">Memorize the number. Beat the rounds. Stack the points. Win the wheel.</p>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #111827);
+  color: white;
+  min-height: 100vh;
+}
 
-    <div class="game-brief panel brief-panel">
-      <h2>How the game works</h2>
-      <p>
-        There are 5 stages for each player. In every stage, you must guess 2 random digits from your partner's phone number.
-        Correct digits stay saved in your progress. If you clear the full stage, you earn points based on the difficulty you chose:
-        Hard Mode gives 2 points, Easy Mode gives 1 point. First player to reach 10 points wins the race to the prize wheel.
-      </p>
-      <p>
-        You can also choose to bet your luck for one extra point 👀. That adds 1 extra random digit. If you get it right, you earn the bonus point.
-        If you get it wrong, you lose all points for that round and must face your partner's punishment 😈
-      </p>
-    </div>
+* {
+  box-sizing: border-box;
+}
 
-    <div class="scoreboard">
-      <div class="score-box red">
-        <div class="score-line">
-          <span>Donaldo Stage</span>
-          <strong id="donaldoStage">1</strong>
-        </div>
-        <div class="score-line">
-          <span>Donaldo Points</span>
-          <strong id="donaldoPoints">0</strong>
-        </div>
-      </div>
+.app {
+  max-width: 1150px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+  text-align: center;
+}
 
-      <div class="score-box green">
-        <div class="score-line">
-          <span>Tess Stage</span>
-          <strong id="tessStage">1</strong>
-        </div>
-        <div class="score-line">
-          <span>Tess Points</span>
-          <strong id="tessPoints">0</strong>
-        </div>
-      </div>
-    </div>
+h1 {
+  font-size: 3.1rem;
+  margin-bottom: 10px;
+}
 
-    <div id="mainScreen" class="panel">
-      <h2>Choose a turn</h2>
-      <div class="turn-buttons">
-        <button id="donaldoBtn" class="turn red-btn">Donaldo's Turn</button>
-        <button id="tessBtn" class="turn green-btn">Tess Turn</button>
-      </div>
-    </div>
+.subtitle {
+  color: #cbd5e1;
+  margin-bottom: 22px;
+}
 
-    <div id="modeScreen" class="panel hidden">
-      <h2 id="modeTitle">Choose mode</h2>
+.brief-panel {
+  text-align: left;
+  margin-bottom: 24px;
+}
 
-      <div class="mode-buttons">
-        <button id="hardMode" class="mode hard">
-          <span>Hard Mode</span>
-          <small>2 points winner winner fast chicken dinner</small>
-          <div id="hardModeList" class="mode-list"></div>
-        </button>
+.brief-panel h2 {
+  margin-top: 0;
+}
 
-        <button id="easyMode" class="mode easy">
-          <span>Easy Mode</span>
-          <small>Slow but easy (and boring)</small>
-        </button>
-      </div>
-    </div>
+.brief-panel p {
+  color: #dbe4f3;
+  line-height: 1.5;
+}
 
-    <div id="countdownScreen" class="panel hidden">
-      <h2>Get Ready</h2>
-      <div id="countdown" class="countdown">3</div>
-    </div>
+.scoreboard {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
 
-    <div id="flashNumber" class="flash-number hidden"></div>
-    <div id="boom" class="boom hidden">💥 BOOM 💥</div>
+.score-box {
+  min-width: 260px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+}
 
-    <div id="guessScreen" class="panel hidden">
-      <h2 id="guessTitle">Fill the requested digits</h2>
-      <p id="stageInstructions" class="stage-instructions"></p>
+.score-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 0;
+}
 
-      <div id="maskedNumber" class="masked-number"></div>
+.score-line span {
+  font-size: 0.98rem;
+}
 
-      <div id="digitInputs" class="digit-inputs"></div>
+.score-line strong {
+  font-size: 1.8rem;
+}
 
-      <div class="path-options">
-        <button id="safePath" class="path safe">Just Guess Thank You</button>
-        <button id="doublePath" class="path double">Bet your luck for one extra point 👀</button>
-      </div>
+.red {
+  border: 2px solid #ef4444;
+}
 
-      <div class="instructions">
-        <div class="instruction-box">
-          <h3>Just Guess Thank You</h3>
-          <p>
-            Submit the 2 required digits for the round. If both are correct, you get the points from the difficulty you chose.
-            Then your turn ends and the other player goes.
-          </p>
-        </div>
+.green {
+  border: 2px solid #22c55e;
+}
 
-        <div class="instruction-box double-box">
-          <h3>Bet your luck for one extra point 👀</h3>
+.panel {
+  background: rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 30px;
+  margin-top: 20px;
+}
 
-          <div class="carousel-wrap">
-            <img id="carouselImage" class="carousel-image" src="" alt="Prize preview" />
-            <div id="carouselCaption" class="carousel-caption"></div>
-          </div>
+.hidden {
+  display: none !important;
+}
 
-          <p>
-            First clear the 2 required digits. Then you get 1 extra random digit.
-            If that extra one is correct, you gain one bonus point.
-            If it is wrong, you lose all points from that round and your partner chooses a punishment 😈
-          </p>
-        </div>
-      </div>
+.turn-buttons,
+.mode-buttons,
+.path-options {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
 
-      <button id="submitGuess" class="submit-btn">Submit Round</button>
-      <div id="resultMessage" class="result-message"></div>
-    </div>
+.turn, .mode, .path, .submit-btn {
+  border: none;
+  border-radius: 22px;
+  padding: 18px 24px;
+  font-size: 1.08rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+}
 
-    <div id="punishmentScreen" class="panel hidden punishment-panel">
-      <h2>Sorry, it is time to receive your punishment.</h2>
-      <p>Turn to your partner and wait for instructions.</p>
+.turn:hover,
+.mode:hover,
+.path:hover,
+.submit-btn:hover {
+  transform: translateY(-2px);
+}
 
-      <div id="secondChanceBox" class="hidden second-chance-box">
-        <p class="second-chance-text">
-          Or you can try to convince your boyfriend to give you another chance 😈
-        </p>
+.red-btn {
+  background: #dc2626;
+}
 
-        <p class="offer-timer-text">
-          This offer expires in <span id="offerCountdown">5</span> seconds
-        </p>
-      </div>
+.green-btn {
+  background: #16a34a;
+}
 
-      <div id="offerBoom" class="hidden offer-boom">💥 OFFER EXPIRED 💥</div>
+.hard {
+  background: #b91c1c;
+  width: 300px;
+  min-height: 190px;
+}
 
-      <button id="continueAfterPunishment" class="submit-btn">Continue</button>
-    </div>
+.easy {
+  background: #15803d;
+  width: 300px;
+  min-height: 190px;
+}
 
-    <div id="wheelScreen" class="panel hidden">
-      <h2>Prize Wheel</h2>
+.mode span {
+  display: block;
+  font-size: 1.7rem;
+}
 
-      <div class="wheel-wrapper">
-        <div class="pointer"></div>
+.mode small {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+}
 
-        <div id="wheel" class="wheel">
-          <div class="wheel-segment seg1"></div>
-          <div class="wheel-segment seg2"></div>
-          <div class="wheel-segment seg3"></div>
-          <div class="wheel-segment seg4"></div>
+.mode-list {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.95);
+}
 
-          <div class="wheel-items">
-            <div class="wheel-item item1">
-              <img id="wheelImg1" src="" alt="" />
-              <span id="wheelLabel1"></span>
-            </div>
-            <div class="wheel-item item2">
-              <img id="wheelImg2" src="" alt="" />
-              <span id="wheelLabel2"></span>
-            </div>
-            <div class="wheel-item item3">
-              <img id="wheelImg3" src="" alt="" />
-              <span id="wheelLabel3"></span>
-            </div>
-            <div class="wheel-item item4">
-              <img id="wheelImg4" src="" alt="" />
-              <span id="wheelLabel4"></span>
-            </div>
-          </div>
+.countdown {
+  font-size: 8rem;
+  font-weight: bold;
+  margin-top: 20px;
+}
 
-          <div class="wheel-center"></div>
-        </div>
-      </div>
+.flash-number {
+  position: fixed;
+  font-size: 2.3rem;
+  font-weight: bold;
+  background: #fde68a;
+  color: #111827;
+  padding: 16px 24px;
+  border-radius: 20px;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: top 0.18s linear, left 0.18s linear, transform 0.18s linear;
+}
 
-      <div id="wheelResult" class="wheel-result"></div>
+.boom {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: bold;
+  color: #facc15;
+  z-index: 1000;
+  animation: boomAnim 0.8s ease-out;
+}
 
-      <div id="bonusOfferBox" class="hidden bonus-offer-box">
-        <h3>One flash for one shot</h3>
-        <p>You can try to convince the other player to give you one extra spin 👀</p>
-        <p>This offer self-destructs in <span id="bonusCountdown">7</span> seconds</p>
-        <button id="acceptBonusSpin" class="submit-btn bonus-btn">Accept</button>
-      </div>
+@keyframes boomAnim {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+}
 
-      <div id="bonusOfferBoom" class="hidden offer-boom">💥 BONUS OFFER EXPIRED 💥</div>
+.stage-instructions {
+  font-size: 1.05rem;
+  color: #cbd5e1;
+  margin: 0 0 20px;
+}
 
-      <button id="newRound" class="submit-btn">New Round</button>
-    </div>
-  </div>
+.masked-number {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0 24px;
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+.mask-slot {
+  width: 46px;
+  height: 58px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.mask-slot.ask {
+  border-color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+}
+
+.mask-slot.known {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.digit-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.digit-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.digit-input-box label {
+  font-size: 0.95rem;
+  color: #fde68a;
+}
+
+.digit-input-box input {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  border: none;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.safe {
+  background: #2563eb;
+}
+
+.double {
+  background: #d97706;
+}
+
+.instructions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.instruction-box {
+  background: rgba(255,255,255,0.08);
+  padding: 20px;
+  border-radius: 20px;
+  text-align: left;
+}
+
+.carousel-wrap {
+  margin: 12px 0 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.08);
+}
+
+.carousel-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-caption {
+  padding: 10px 12px;
+  font-weight: bold;
+  color: #fde68a;
+  text-align: center;
+}
+
+.submit-btn {
+  background: #7c3aed;
+  margin-top: 25px;
+  padding: 18px 40px;
+}
+
+.result-message {
+  margin-top: 18px;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #fde68a;
+  min-height: 28px;
+}
+
+.punishment-panel h2 {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.punishment-panel p {
+  font-size: 1.2rem;
+  color: #fde68a;
+}
+
+.second-chance-box,
+.bonus-offer-box {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.18);
+  border: 1px solid rgba(196, 181, 253, 0.35);
+  animation: fadeInUp 0.5s ease;
+}
+
+.second-chance-text {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #e9d5ff;
+  margin: 0 0 10px;
+}
+
+.offer-timer-text {
+  font-size: 1rem;
+  color: #fde68a;
+  margin: 0;
+}
+
+#offerCountdown,
+#bonusCountdown {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #facc15;
+}
+
+.offer-boom {
+  margin-top: 24px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #f87171;
+  animation: boomOfferAnim 1s ease forwards;
+}
+
+.bonus-btn {
+  background: #9333ea;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes boomOfferAnim {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+.wheel-wrapper {
+  position: relative;
+  width: 360px;
+  height: 360px;
+  margin: 30px auto;
+}
+
+.pointer {
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 30px solid white;
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.wheel {
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  border: 10px solid #111827;
+  position: relative;
+  overflow: hidden;
+  background: #111827;
+  transform: rotate(0deg);
+  transition: transform 4.2s cubic-bezier(0.15, 0.8, 0.2, 1);
+}
+
+.wheel-segment {
+  position: absolute;
+  inset: 0;
+}
+
+.seg1 {
+  background: conic-gradient(from 0deg, #ef4444 0deg 90deg, transparent 90deg 360deg);
+}
+.seg2 {
+  background: conic-gradient(from 90deg, #f59e0b 0deg 90deg, transparent 90deg 360deg);
+}
+.seg3 {
+  background: conic-gradient(from 180deg, #10b981 0deg 90deg, transparent 90deg 360deg);
+}
+.seg4 {
+  background: conic-gradient(from 270deg, #3b82f6 0deg 90deg, transparent 90deg 360deg);
+}
+
+.wheel-items {
+  position: absolute;
+  inset: 0;
+}
+
+.wheel-item {
+  position: absolute;
+  width: 110px;
+  text-align: center;
+  z-index: 5;
+}
+
+.wheel-item img {
+  width: 78px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: white;
+  display: block;
+  margin: 0 auto 6px;
+}
+
+.wheel-item span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: bold;
+  line-height: 1.15;
+  padding: 0 4px;
+}
+
+.item1 {
+  top: 30px;
+  left: 125px;
+}
+
+.item2 {
+  top: 125px;
+  right: 20px;
+}
+
+.item3 {
+  bottom: 30px;
+  left: 125px;
+}
+
+.item4 {
+  top: 125px;
+  left: 20px;
+}
+
+.wheel-center {
+  width: 92px;
+  height: 92px;
+  background: #111827;
+  border: 4px solid white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 8;
+  transform: translate(-50%, -50%);
+}
+
+.wheel-result {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #fde68a;
+  margin-top: 20px;
+  min-height: 32px;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2.4rem;
+  }
+
+  .wheel-wrapper,
+  .wheel {
+    width: 300px;
+    height: 300px;
+  }
+
+  .item1, .item3 {
+    left: 96px;
+  }
+
+  .item2 {
+    right: 8px;
+  }
+
+  .item4 {
+    left: 8px;
+  }
+
+  .wheel-item {
+    width: 96px;
+  }
+
+  .wheel-item img {
+    width: 68px;
+    height: 50px;
+  }
+
+  .mask-slot {
+    width: 40px;
+    height: 52px;
+  }
+}
